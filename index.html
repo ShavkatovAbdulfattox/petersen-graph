@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Pairs Graph</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #graphContainer {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <label for="inputNumber">Enter a number:</label>
+    <input type="number" id="inputNumber" min="1" step="1">
+    <button onclick="generatePairsAndGraph()">Generate Pairs and Graph</button>
+
+    <div id="graphContainer"></div>
+
+    <script>
+        function generatePairsAndGraph() {
+            // Clear previous graph
+            const container = document.getElementById("graphContainer");
+            container.innerHTML = '';
+
+            // Get user input
+            const inputNumber = parseInt(document.getElementById("inputNumber").value);
+
+            // Generate pairs
+            const pairs = [];
+            for (let i = 1; i <= inputNumber; i++) {
+                for (let j = i + 1; j <= inputNumber; j++) {
+                    const pair = [i, j];
+                    pairs.push(pair);
+                }
+            }
+
+            // Create nodes and edges
+            const nodes = new vis.DataSet(pairs.map((pair, index) => ({ id: index, label: pair.join('-') })));
+            const edges = new vis.DataSet(generateLinks(pairs));
+
+            // Create graph
+            const data = {
+                nodes: nodes,
+                edges: edges
+            };
+
+            const options = {
+                nodes: {
+                    shape: 'circle',
+                    size: 20,
+                    color: {
+                        background: '#66c2a5',
+                        border: '#1f78b4',
+                    },
+                    font: {
+                        color: '#d73027',
+                    },
+                },
+                edges: {
+                    color: {
+                        color: '#ff7f0e',  // Change edge color
+                        hover: '#ff0000',  // Change edge hover color
+                        highlight: 'green',  // Change edge highlight color
+                    },
+                    width: 3,  // Change edge width
+                },
+                physics: {
+                    enabled: true,
+                    solver: 'forceAtlas2Based',
+                    forceAtlas2Based: {
+                        gravitationalConstant: -200,
+                        centralGravity: 0.005,
+                        springLength: 100,
+                        springConstant: 0.08,
+                    },
+                    maxVelocity: 50,
+                    minVelocity: 0.1,
+                    stabilization: {
+                        enabled: true,
+                        iterations: 1000,
+                        updateInterval: 25,
+                    },
+                },
+            };
+
+            const network = new vis.Network(container, data, options);
+
+            // Add text label
+            const label = document.createElement("div");
+            label.innerHTML = "<h2>Number Pairs Graph</h2>";
+            container.appendChild(label);
+
+            function generateLinks(pairs) {
+                const links = [];
+                for (let i = 0; i < pairs.length; i++) {
+                    for (let j = i + 1; j < pairs.length; j++) {
+                        const numbers1 = pairs[i];
+                        const numbers2 = pairs[j];
+
+                        // Connect nodes only if numbers are not repeated
+                        if (!numbers1.some(num => numbers2.includes(num))) {
+                            links.push({ from: i, to: j });
+                        }
+                    }
+                }
+                return links;
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Pairs Graph</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+    <label for="inputNumber">Enter a number:</label>
+    <input type="number" id="inputNumber" min="1" step="1">
+    <button onclick="generatePairsAndGraph()">Generate Pairs and Graph</button>
+
+    <div id="graphContainer" style="width: 800px; height: 600px;"></div>
+
+    <script>
+        function generatePairsAndGraph() {
+            // Clear previous graph
+            d3.select("#graphContainer").selectAll("*").remove();
+
+            // Get user input
+            const inputNumber = parseInt(document.getElementById("inputNumber").value);
+
+            // Generate pairs
+            const pairs = [];
+            for (let i = 1; i <= inputNumber; i++) {
+                for (let j = i + 1; j <= inputNumber; j++) {
+                    const pair = [i, j];
+                    pairs.push(pair);
+                }
+            }
+
+            // Create graph
+            const graphContainer = d3.select("#graphContainer");
+            const svg = graphContainer.append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%");
+
+            const nodes = pairs.map((pair, index) => ({ id: index, label: pair.join('-') }));
+            const links = generateLinks(nodes);
+
+            const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(150))
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("center", d3.forceCenter(graphContainer.node().offsetWidth / 2, graphContainer.node().offsetHeight / 2));
+
+            const link = svg.append("g")
+                .selectAll("line")
+                .data(links)
+                .enter().append("line")
+                .style("stroke", "#888888"); // Line color
+
+            const node = svg.append("g")
+                .selectAll("g")
+                .data(nodes)
+                .enter().append("g")
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            node.append("circle")
+                .attr("r", 20)
+                .style("fill", "#66c2a5")  // Node color
+                .style("stroke", "#1f78b4")  // Node border color
+                .style("stroke-width", "2");
+
+            node.append("text")
+                .attr("x", 0)
+                .attr("y", 6)
+                .attr("text-anchor", "middle")
+                .style("fill", "#d73027")  // Text color
+                .text(d => d.label);
+
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+
+            function generateLinks(nodes) {
+                const links = [];
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const numbers1 = nodes[i].label.split('-');
+                        const numbers2 = nodes[j].label.split('-');
+
+                        // Connect nodes only if numbers are not repeated
+                        if (!numbers1.some(num => numbers2.includes(num))) {
+                            links.push({ source: i, target: j });
+                        }
+                    }
+                }
+                return links;
+            }
+
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }
+    </script>
+</body>
+</html> -->
