@@ -144,20 +144,6 @@
             label.innerHTML = "<h2>Number Pairs Graph</h2>";
             container.appendChild(label);
 
-            // Add click event listener to edges
-            network.on("click", function (params) {
-                if (params.edges.length > 0) {
-                    const edgeId = params.edges[0];
-                    const edgeLabel = edges.get(edgeId).label;
-
-                    // Show confirmation pop-up
-                    const isConfirmed = confirm(`Are you sure you want to delete pair ${edgeLabel}?`);
-                    if (isConfirmed) {
-                        // Remove the pair if confirmed
-                        edges.remove({ id: edgeId });
-                    }
-                }
-            });
 
             function generateLinks(pairs) {
                 const links = [];
