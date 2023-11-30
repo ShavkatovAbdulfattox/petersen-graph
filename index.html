@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,23 +8,61 @@
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
     <style>
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
+            background: #323232;
         }
+
         #graphContainer {
             width: 100%;
             height: 100%;
         }
+
+        #inputNumber {
+            background: #000;
+            color: white;
+            font-size: 1.5rem;
+            border: none;
+            text-align: center;
+        }
+
+        .input_num {
+            color: white;
+            font-size: 1.8rem;
+            font-family: Arial, sans-serif;
+        }
+
+        button {
+            background: green;
+            color: white;
+            font-family: "Arial", sans-serif;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px 15px;
+            border-radius: 15px;
+        }
+        .wrapper{
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
     </style>
 </head>
+
 <body>
-    <label for="inputNumber">Enter a number:</label>
+    <div class="wrapper">
+       <label for="inputNumber" class="input_num">Enter a number:</label>
+
     <input type="number" id="inputNumber" min="1" step="1">
-    <button onclick="generatePairsAndGraph()">Generate Pairs and Graph</button>
+    <button onclick="generatePairsAndGraph()">Generate Pairs and Graph</button>     
+    </div>
+
 
     <div id="graphContainer"></div>
 
@@ -39,8 +78,12 @@
             // Generate pairs
             const pairs = [];
             for (let i = 1; i <= inputNumber; i++) {
+                console.log(i);
+                console.log("----");
                 for (let j = i + 1; j <= inputNumber; j++) {
+                    console.log(j);
                     const pair = [i, j];
+                    console.log(pair);
                     pairs.push(pair);
                 }
             }
@@ -64,14 +107,14 @@
                         border: '#1f78b4',
                     },
                     font: {
-                        color: '#d73027',
+                        color: 'black',
                     },
                 },
                 edges: {
                     color: {
                         color: '#ff7f0e',  // Change edge color
                         hover: '#ff0000',  // Change edge hover color
-                        highlight: 'green',  // Change edge highlight color
+                        highlight: 'yellow',  // Change edge highlight color
                     },
                     width: 3,  // Change edge width
                 },
@@ -101,6 +144,21 @@
             label.innerHTML = "<h2>Number Pairs Graph</h2>";
             container.appendChild(label);
 
+            // Add click event listener to edges
+            network.on("click", function (params) {
+                if (params.edges.length > 0) {
+                    const edgeId = params.edges[0];
+                    const edgeLabel = edges.get(edgeId).label;
+
+                    // Show confirmation pop-up
+                    const isConfirmed = confirm(`Are you sure you want to delete pair ${edgeLabel}?`);
+                    if (isConfirmed) {
+                        // Remove the pair if confirmed
+                        edges.remove({ id: edgeId });
+                    }
+                }
+            });
+
             function generateLinks(pairs) {
                 const links = [];
                 for (let i = 0; i < pairs.length; i++) {
@@ -110,7 +168,7 @@
 
                         // Connect nodes only if numbers are not repeated
                         if (!numbers1.some(num => numbers2.includes(num))) {
-                            links.push({ from: i, to: j });
+                            links.push({ from: i, to: j, label: pairs[i].join('-') });
                         }
                     }
                 }
@@ -119,7 +177,9 @@
         }
     </script>
 </body>
+
 </html>
+
 
 
 
